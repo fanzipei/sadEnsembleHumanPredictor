@@ -1,0 +1,84 @@
+#!/usr/bin/env python
+# encoding: utf-8
+
+import os
+import csv
+import time
+import meshlonlat
+
+
+start_time = time.mktime(time.strptime('2012-05-31 23:50:00', '%Y-%m-%d %H:%M:%S'))
+loc_dict = dict({})
+lat_min = 35.5
+lat_max = 35.8
+lon_min = 139.4
+lon_max = 139.9
+
+
+def filename_generator(folder_path):
+    filename = '2012{:02d}{:02d}.csv'
+    day_idx = 1
+    for m in xrange(6, 8):
+        for d in xrange(1, 32):
+            full_path = os.path.join(folder_path, filename.format(m, d))
+            if os.path.isfile(full_path):
+                yield day_idx, full_path
+                day_idx += 1
+
+
+def read_traj(filename):
+    with open(filename, 'r') as f:
+        for uid_str, time_str, lat_str, lon_str in csv.reader(f):
+            tstamp = time.mktime(time.strptime(time_str, '%Y-%m-%d %H:%M:%S')) - start_time
+            if tstamp < start_time or tstamp >= start_time + 24 * 3600:
+                continue
+            lat = float(lat_str)
+            lon = float(lon_str)
+            uid = int(uid_str)
+            if uid in user_traj:
+                user_traj[uid].append((tstamp, lat, lon))
+
+    for uid in user_traj:
+        user_traj[uid] = sorted(user_traj[uid], key=lambda x:x[0])
+
+    return user_traj
+
+
+def get_current_latlon(traj_raw, t):
+    if t < traj_raw[0][0]:
+        return traj_raw[0][1], traj_raw[0][2]
+
+    for i in xrange(len(traj_raw) - 1):
+        pre_t = traj_raw[i][0]
+        pre_lat = traj_raw[i][1]
+        pre_lon = traj_raw[i][2]
+        pro_t = traj_raw[i + 1][0]
+        pro_lat = traj_raw[i + 1][1]
+        pro_lon = traj_raw[i + 1][2]
+        if pre_t < t and pro_t >= t:
+            d_lat = pro_lat - pre_lat
+            d_lon = pro_lon - pre_lon
+            d_t = pro_t - pre_t
+            if d_t < 1e-6:
+                return 0.5 * (pre_lat + pro_lat), 0.5 * (pre_lon + pro_lon)
+            else:
+                return pre_lat + (t - pre_t) / d_t * d_lat, pre_lon + (t - pre_t) / d_t * d_lon
+
+    return traj_raw[-1][1], traj_raw[-1][2]
+
+
+def get_training_set(user_traj):
+    for uid in user_traj:
+        for t in xrange(96):
+            cur_lat, cur_lon = get_current_latlon(user_traj[uid], t * 900)
+            meshcode = meshlonlat.lonlat2mesh(cur_lon, cur_lat, 1000)
+            if meshcode not in loc_dict:
+                loc_dict[meshcode] = len(loc_dict)
+            lidx = loc_dict[meshcode]
+            f
+
+
+for day_idx, filename in filename_generator('/media/fan/HDPC-UT/ZDC/TrainingForMapping/usersintokyo'):
+    print 'Read {}'.format(filename)
+    user_traj = read_traj(filename, start_time + day_idx * 3600 * 24)
+    training_set = get_training_set(user_traj)
