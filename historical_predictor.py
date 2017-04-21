@@ -14,6 +14,7 @@ embedding_dim_loc = 64
 hidden_dim = 64
 num_users = 100
 num_locs = 1441
+batch_size = 256
 T = 4
 
 
@@ -31,11 +32,13 @@ def get_userindex(folderpath, min_day, max_day):
     return user_index
 
 
-def read_trainingset(folderpath, min_day, max_day, user_index):
-    for d in xrange(min_day, max_day + 1):
+def read_trainingset(folderpath, min_day, max_day, user_index, max_iter):
+    for i in xrange(max_iter):
+        d = np.random.randint(min_day, max_day + 1)
         uX = None
         tX = None
         xX = None
+        Y = None
         filepath = '{}day_{}.csv'.format(folderpath, d)
         data = np.genfromtxt(filepath, dtype=np.int32, delimiter=',')
         if uX is None:
@@ -43,7 +46,20 @@ def read_trainingset(folderpath, min_day, max_day, user_index):
         else:
             uX = np.concatenate([uX, np.vectorize(lambda x:user_index[x])(data[:, 0]).repeat(96 - T - 2)])
         for t in xrange(96 - T):
-            data[:, t + 1:t + 1 + T]
+            if tX is None:
+                tX = np.array([t] * data.shape[0])
+            else:
+                tX = np.concatenate([tX, np.array([t] * data.shape[0])])
+            if xX is None:
+                xX = data[:, t + 1:t + 1 + T]
+            else:
+                xX = np.concatenate([xX, data[:, t + 1:t + 1 + T]])
+            if Y is None:
+                Y = data[:, t + 1 + T]
+            else:
+                Y = np.concatenate([Y, data[:, t + 1 + T]])
+
+        yield uX, tX, xX, Y
 
 
 user_index = get_userindex('/home/fan/work/data/dis_forhybrid/', 1, 30)
@@ -66,3 +82,8 @@ y = Dense(num_locs, activation='softmax')(gru2)
 historical_predictor = Model([u_input, t_input, x_input], y)
 historical_predictor.summary()
 historical_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
+
+for uX, tX, xX, Y in read_trainingset('/home/fan/work/data/dis_forhybrid/', 1, 30, user_index, 500):
+    historical_predictor.fit([uX, tX, xX], Y, batch_size=batch_size, epochs=1)
+    historical_predictor.save('./historical_predictor.hdf5')
+    historical_predictor.save_weights('./historical_predictor_weights.hdf5')
