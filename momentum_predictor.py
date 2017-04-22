@@ -11,7 +11,7 @@ import numpy as np
 
 embedding_dim_time = 8
 embedding_dim_loc = 64
-hidden_dim = 64
+hidden_dim = 256
 num_locs = 1441
 batch_size = 256
 T = 4
@@ -48,9 +48,8 @@ temb = Flatten()(Embedding(96, embedding_dim_time)(t_input))
 xemb = Embedding(num_locs, embedding_dim_loc, input_length=T)(x_input)
 rep_time = RepeatVector(T)(temb)
 merge_input = concatenate([rep_time, xemb], axis=-1)
-gru1 = GRU(hidden_dim, return_sequences=True, unroll=True, activation='softsign')(merge_input)
-gru2 = GRU(hidden_dim, return_sequences=False, unroll=True, activation='softsign')(gru1)
-y = Dense(num_locs, activation='softmax')(gru2)
+gru = GRU(hidden_dim, return_sequences=False, unroll=True, activation='softsign')(merge_input)
+y = Dense(num_locs, activation='softmax')(gru)
 
 momentum_predictor = Model([t_input, x_input], y)
 momentum_predictor.summary()
