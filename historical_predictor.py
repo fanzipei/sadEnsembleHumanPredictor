@@ -11,7 +11,7 @@ import numpy as np
 embedding_dim_user = 32
 embedding_dim_time = 8
 embedding_dim_loc = 64
-hidden_dim = 64
+hidden_dim = 256
 num_users = 100
 num_locs = 1441
 batch_size = 256
@@ -75,9 +75,8 @@ xemb = Embedding(num_locs, embedding_dim_loc, input_length=T)(x_input)
 rep_uidx = RepeatVector(T)(uemb)
 rep_time = RepeatVector(T)(temb)
 merge_input = concatenate([rep_uidx, rep_time, xemb], axis=-1)
-gru1 = GRU(hidden_dim, return_sequences=True, unroll=True, activation='softsign')(merge_input)
-gru2 = GRU(hidden_dim, return_sequences=False, unroll=True, activation='softsign')(gru1)
-y = Dense(num_locs, activation='softmax')(gru2)
+gru = GRU(hidden_dim, return_sequences=False, unroll=True, activation='softsign')(merge_input)
+y = Dense(num_locs, activation='softmax')(gru)
 
 historical_predictor = Model([u_input, t_input, x_input], y)
 historical_predictor.summary()
