@@ -82,10 +82,10 @@ ensemble_predictor.summary()
 ensemble_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
 init_weights = ensemble_predictor.get_weights()
 
-for d in xrange(1, 364):
-    for tX, xX, Y1, Y2, Y3, Y4 in read_trainingset('/media/fan/HDPC-UT/ZDC/TrainingForMapping/dis_forhybrid/', d):
+for d in xrange(1, 27):
+    for tX, xX, Y1, Y2, Y3, Y4 in read_trainingset('/home/fan/work/data/dis_forensemble/', d):
         ensemble_predictor.set_weights(init_weights)
         ensemble_predictor.fit([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size, epochs=20, shuffle=True,\
                                validation_split=0.1, verbose=1, callbacks=callbacks)
-        ensemble_predictor.save('../results/sadHybridHumanPredictor/ensemble_predictor/ensemble_predictor.hdf5')
-        ensemble_predictor.save_weights('../results/sadHybridHumanPredictor/ensemble_predictor/momentum_predictor_weights.hdf5')
+        ensemble_predictor.save('../results/sadHybridHumanPredictor/ensemble_predictor/ensemble_predictor_{}.hdf5'.format(d))
+        ensemble_predictor.save_weights('../results/sadHybridHumanPredictor/ensemble_predictor/momentum_predictor_weights_{}.hdf5'.format(d))
