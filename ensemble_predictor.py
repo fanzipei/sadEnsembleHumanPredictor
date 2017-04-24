@@ -3,7 +3,7 @@
 
 
 from keras.models import Model
-from keras.callbacks import CSVLogger, EarlyStopping
+from keras.callbacks import CSVLogger, EarlyStopping, ModelCheckpoint
 from keras.layers import GRU, Embedding, Input, RepeatVector, Dense, Flatten
 from keras.layers.merge import concatenate
 from keras.optimizers import RMSprop
@@ -12,7 +12,7 @@ import numpy as np
 
 embedding_dim_time = 8
 embedding_dim_loc = 64
-hidden_dim = 128
+hidden_dim = 100
 num_locs = 1441
 batch_size = 256
 T = 4
@@ -53,12 +53,12 @@ def read_trainingset(folderpath, d):
         else:
             Y4 = np.concatenate([Y4, data[:, t + 4 + T]])
 
-    yield tX, xX, Y1, Y2, Y3, Y4
+    return tX, xX, Y1, Y2, Y3, Y4
 
 
 t_input = Input(shape=(1,))
 x_input = Input(shape=(T,))
-temb = Flatten()(Embedding(96, embedding_dim_time)(t_input))
+temb = Flatten()(Embedding(96 - T - 3, embedding_dim_time)(t_input))
 xemb = Embedding(num_locs, embedding_dim_loc, input_length=T)(x_input)
 rep_time = RepeatVector(T)(temb)
 merge_input = concatenate([rep_time, xemb], axis=-1)
@@ -73,19 +73,18 @@ y2 = shared_softmax(gru22)
 y3 = shared_softmax(gru23)
 y4 = shared_softmax(gru24)
 
-callbacks = [
-    CSVLogger('../results/sadHybridHumanPredictor/ensemble_predictor/log.csv', separator=',', append=False),
-    EarlyStopping(monitor='val_loss', patience=1, verbose=1, mode='auto')
-]
 ensemble_predictor = Model([t_input, x_input], [y1, y2, y3, y4])
 ensemble_predictor.summary()
 ensemble_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
 init_weights = ensemble_predictor.get_weights()
 
-for d in xrange(1, 27):
-    for tX, xX, Y1, Y2, Y3, Y4 in read_trainingset('/home/fan/work/data/dis_forensemble/', d):
-        ensemble_predictor.set_weights(init_weights)
-        ensemble_predictor.fit([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size, epochs=20, shuffle=True,\
-                               validation_split=0.1, verbose=1, callbacks=callbacks)
-        ensemble_predictor.save('../results/sadHybridHumanPredictor/ensemble_predictor/ensemble_predictor_{}.hdf5'.format(d))
-        ensemble_predictor.save_weights('../results/sadHybridHumanPredictor/ensemble_predictor/momentum_predictor_weights_{}.hdf5'.format(d))
+for d in xrange(32, 62):
+    callbacks = [
+        CSVLogger('../results/sadHybridHumanPredictor/ensemble_predictor/log_d{}.csv'.format(d), separator=',', append=False),
+        ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/ensemble_predictor/ensemble_predictor_{}.hdf5'.format(d), verbose=1, save_best_only=True),
+        EarlyStopping(monitor='val_loss', patience=0, verbose=1, mode='auto')
+    ]
+    tX, xX, Y1, Y2, Y3, Y4 = read_trainingset('/home/fan/work/data/dis_forensemble/', d)
+    ensemble_predictor.set_weights(init_weights)
+    ensemble_predictor.fit([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size, epochs=20, shuffle=True,\
+                            validation_split=0.2, verbose=1, callbacks=callbacks)
