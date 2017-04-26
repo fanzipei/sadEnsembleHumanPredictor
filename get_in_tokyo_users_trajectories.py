@@ -7,7 +7,10 @@ import os
 def filter_users_in_region(filename, lat_min, lat_max, lon_min, lon_max):
     user_set = dict({})
     with open(filename, 'r') as f:
+        # cnt = 0
         for uid_str, time_str, lat_str, lon_str, _, _, in csv.reader(f):
+            # cnt += 1
+            # print cnt
             uid = int(uid_str)
             lat = float(lat_str)
             lon = float(lon_str)
@@ -33,14 +36,17 @@ def output_traj(full_path, out_folder, out_filename, user_set):
 
 
 def filename_generator(folder_path):
-    filename_fmt = '2012{:02d}{:02d}.csv'
-    for m in xrange(5, 6):
+    filename_fmt = '2013{:02d}{:02d}.csv'
+    cnt = 0
+    for m in xrange(5, 13):
         for d in xrange(1, 32):
-            filename = filename_fmt.format(m, d)
-            full_path = os.path.join(folder_path, filename)
-            print 'Reading {}'.format(full_path)
-            if os.path.isfile(full_path):
-                yield filename, full_path
+            if cnt >= 0:
+                filename = filename_fmt.format(m, d)
+                full_path = os.path.join(folder_path, filename)
+                print 'Reading {}'.format(full_path)
+                if os.path.isfile(full_path):
+                    yield filename, full_path
+            cnt += 1
 
 
 def main():
@@ -48,10 +54,10 @@ def main():
     lat_max = 35.8
     lon_min = 139.4
     lon_max = 139.9
-    folder_path = '/media/fan/HDPC-UT/ZDC/2012/FeaturePhone/'
+    folder_path = '/media/hpc/HDPC-UT/ZDC/2013/MOD_ATF_ITSMONAVI/2013/'
     for filename, full_path in filename_generator(folder_path):
         user_set = filter_users_in_region(full_path, lat_min, lat_max, lon_min, lon_max)
-        out_folder = '/media/fan/HDPC-UT/ZDC/TrainingForMapping/usersintokyo/'
+        out_folder = '/home/hpc/work/data/UsersInTokyo/'
         output_traj(full_path, out_folder, filename, user_set)
 
 
