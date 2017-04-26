@@ -8,7 +8,7 @@ import meshlonlat
 import numpy as np
 
 
-start_time = time.mktime(time.strptime('2011-12-31 23:50:00', '%Y-%m-%d %H:%M:%S'))
+start_time = time.mktime(time.strptime('2012-04-30 23:50:00', '%Y-%m-%d %H:%M:%S'))
 loc_dict = dict({})
 lat_min = 35.5
 lat_max = 35.8
@@ -19,7 +19,7 @@ lon_max = 139.9
 def filename_generator(folder_path):
     filename = '2012{:02d}{:02d}.csv'
     day_idx = 1
-    for m in xrange(1, 13):
+    for m in xrange(5, 13):
         for d in xrange(1, 32):
             full_path = os.path.join(folder_path, filename.format(m, d))
             if os.path.isfile(full_path):
@@ -87,23 +87,29 @@ def get_training_set(user_traj):
     return user_traj_matrix
 
 
-dlat = (lat_max - lat_min) * 0.01
-dlon = (lon_max - lon_min) * 0.01
-for i in xrange(100):
-    for j in xrange(100):
-        lat = lat_min + dlat * (i + 0.5)
-        lon = lon_min + dlon * (j + 0.5)
-        meshcode = meshlonlat.lonlat2mesh(lon, lat, 1000)
-        if meshcode not in loc_dict:
-            loc_dict[meshcode] = len(loc_dict)
-print 'Initialize Loc dictionary'
-with open('/media/fan/HDPC-UT/ZDC/TrainingForMapping/dis_forhybrid/loc_dict.csv', 'w') as f:
-    for meshcode in loc_dict:
-        f.write('{},{}\n'.format(meshcode, loc_dict[meshcode] + 1))
+# dlat = (lat_max - lat_min) * 0.01
+# dlon = (lon_max - lon_min) * 0.01
+# for i in xrange(100):
+    # for j in xrange(100):
+        # lat = lat_min + dlat * (i + 0.5)
+        # lon = lon_min + dlon * (j + 0.5)
+        # meshcode = meshlonlat.lonlat2mesh(lon, lat, 1000)
+        # if meshcode not in loc_dict:
+            # loc_dict[meshcode] = len(loc_dict)
+
+# print 'Initialize Loc dictionary'
+# with open('/home/fan/work/data/dis_forensemble/loc_dict.csv', 'w') as f:
+    # for meshcode in loc_dict:
+        # f.write('{},{}\n'.format(meshcode, loc_dict[meshcode] + 1))
+
+print 'Initialize loc dictionary from file'
+with open('/home/fan/work/data/dis_forensemble_frommay/loc_dict.csv', 'r') as f:
+    for meshcode, lidx in csv.reader(f):
+        loc_dict[meshcode] = int(lidx)
 
 for day_idx, filename in filename_generator('/home/fan/work/data/UsersInTokyo/'):
     print 'Read {}'.format(filename)
     user_traj = read_traj(filename, start_time + (day_idx - 1) * 3600 * 24)
     print 'Number of users: {}'.format(len(user_traj))
     training_set = get_training_set(user_traj)
-    np.savetxt('/home/fan/work/data/dis_forensemble/day_{}.csv'.format(day_idx), training_set, delimiter=',')
+    np.savetxt('/home/fan/work/data/dis_forensemble_frommay/day_{}.csv'.format(day_idx), training_set, delimiter=',')
