@@ -8,7 +8,7 @@ import meshlonlat
 import numpy as np
 
 
-start_time = time.mktime(time.strptime('2013-04-30 23:50:00', '%Y-%m-%d %H:%M:%S'))
+start_time = time.mktime(time.strptime('2010-07-31 23:50:00', '%Y-%m-%d %H:%M:%S'))
 loc_dict = dict({})
 lat_min = 35.5
 lat_max = 35.8
@@ -17,9 +17,9 @@ lon_max = 139.9
 
 
 def filename_generator(folder_path):
-    filename = '2013{:02d}{:02d}.csv'
+    filename = '2010{:02d}{:02d}.csv'
     day_idx = 1
-    for m in xrange(5, 13):
+    for m in xrange(1, 13):
         for d in xrange(1, 32):
             full_path = os.path.join(folder_path, filename.format(m, d))
             if os.path.isfile(full_path):
@@ -36,7 +36,7 @@ def read_traj(filename, start_time):
                 continue
             lat = float(lat_str)
             lon = float(lon_str)
-            uid = int(uid_str)
+            uid = int(uid_str[3:])
             if uid not in user_traj:
                 user_traj[uid] = []
             user_traj[uid].append((tstamp, lat, lon))
@@ -80,7 +80,7 @@ def get_training_set(user_traj):
             meshcode = meshlonlat.lonlat2mesh(cur_lon, cur_lat, 1000)
             lidx = 0
             if meshcode in loc_dict:
-                lidx = loc_dict[meshcode] + 1
+                lidx = loc_dict[meshcode]
             user_traj_matrix[uidx, t + 1] = lidx
         uidx += 1
 
@@ -108,8 +108,10 @@ with open('./loc_dict.csv', 'r') as f:
         loc_dict[meshcode] = int(lidx)
 
 for day_idx, filename in filename_generator('/home/hpc/work/data/UsersInTokyo/'):
+    # if day_idx < 19:
+        # continue
     print 'Read {}'.format(filename)
     user_traj = read_traj(filename, start_time + (day_idx - 1) * 3600 * 24)
     print 'Number of users: {}'.format(len(user_traj))
     training_set = get_training_set(user_traj)
-    np.savetxt('/home/hpc/work/data/dis_forensemble_2013aftermay/day_{}.csv'.format(day_idx), training_set, delimiter=',')
+    np.savetxt('/home/hpc/work/data/dis_forensemble_2010/day_{}.csv'.format(day_idx), training_set, delimiter=',', fmt='%i')
