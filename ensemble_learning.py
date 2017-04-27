@@ -12,7 +12,7 @@ import numpy as np
 
 embedding_dim_time = 8
 embedding_dim_loc = 64
-num_models = 27
+num_models = 2
 hidden_dim = 100
 num_locs = 1441
 batch_size = 256
@@ -79,10 +79,10 @@ gru1 = GRU(hidden_dim, return_sequences=False, unroll=True, activation='softsign
 models_out = [[Reshape((num_locs, 1))(model([t_input, x_input])[i]) for model in models] for i in xrange(4)]
 preds = [concatenate(models_out[i], axis=-1) for i in xrange(4)]
 weights = Reshape((num_models, 1))(Dense(num_models, activation='softmax')(gru1))
-y1 = Flatten()(dot([preds[0], weights], [2, 1]))
-y2 = Flatten()(dot([preds[1], weights], [2, 1]))
-y3 = Flatten()(dot([preds[2], weights], [2, 1]))
-y4 = Flatten()(dot([preds[3], weights], [2, 1]))
+y1 = Reshape((num_locs,))(dot([preds[0], weights], [2, 1]))
+y2 = Reshape((num_locs,))(dot([preds[1], weights], [2, 1]))
+y3 = Reshape((num_locs,))(dot([preds[2], weights], [2, 1]))
+y4 = Reshape((num_locs,))(dot([preds[3], weights], [2, 1]))
 online_predictor = Model([t_input, x_input], [y1, y2, y3, y4])
 online_predictor.summary()
 online_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
