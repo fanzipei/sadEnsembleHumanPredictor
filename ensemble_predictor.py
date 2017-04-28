@@ -12,7 +12,7 @@ import numpy as np
 
 embedding_dim_time = 8
 embedding_dim_loc = 64
-hidden_dim = 100
+hidden_dim = 128
 num_locs = 1441
 batch_size = 256
 T = 4
@@ -78,13 +78,13 @@ ensemble_predictor.summary()
 ensemble_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
 init_weights = ensemble_predictor.get_weights()
 
-for d in xrange(32, 62):
+for d in xrange(1, 32):
     callbacks = [
-        CSVLogger('../results/sadHybridHumanPredictor/ensemble_predictor/log_d{}.csv'.format(d), separator=',', append=False),
-        ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/ensemble_predictor/ensemble_predictor_{}.hdf5'.format(d), verbose=1, save_best_only=True),
+        CSVLogger('../results/sadHybridHumanPredictor/ensemble_predictor_2011_jan/log_d{}.csv'.format(d), separator=',', append=False),
+        ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/ensemble_predictor_2011_jan/ensemble_predictor_{}.hdf5'.format(d), verbose=1, save_best_only=True),
         EarlyStopping(monitor='val_loss', patience=0, verbose=1, mode='auto')
     ]
-    tX, xX, Y1, Y2, Y3, Y4 = read_trainingset('/home/fan/work/data/dis_forensemble/', d)
+    tX, xX, Y1, Y2, Y3, Y4 = read_trainingset('/home/fan/work/data/dis_forensemble_2011_jan/', d)
     ensemble_predictor.set_weights(init_weights)
     ensemble_predictor.fit([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size, epochs=20, shuffle=True,\
                             validation_split=0.2, verbose=1, callbacks=callbacks)
