@@ -71,11 +71,8 @@ print 'Load Models Finished'
 
 t_input = Input(shape=(1,))
 x_input = Input(shape=(T,))
-temb = Flatten()(Embedding(96 - T - 3, embedding_dim_time)(t_input))
 xemb = Embedding(num_locs, embedding_dim_loc, input_length=T)(x_input)
-rep_time = RepeatVector(T)(temb)
-merge_input = concatenate([rep_time, xemb], axis=-1)
-gru1 = GRU(hidden_dim, return_sequences=False, unroll=True, activation='softsign')(merge_input)
+gru1 = GRU(hidden_dim, return_sequences=False, unroll=True, activation='softsign')(xemb)
 models_out = [[Reshape((num_locs, 1))(model([t_input, x_input])[i]) for model in models] for i in xrange(4)]
 preds = [concatenate(models_out[i], axis=-1) for i in xrange(4)]
 weights = Reshape((num_models, 1))(Dense(num_models, activation='softmax')(gru1))
