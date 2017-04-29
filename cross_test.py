@@ -13,7 +13,7 @@ import numpy as np
 
 embedding_dim_time = 8
 embedding_dim_loc = 64
-num_models = 27
+num_models = 31
 hidden_dim = 100
 num_locs = 1441
 batch_size = 256
