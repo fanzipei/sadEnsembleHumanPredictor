@@ -89,10 +89,9 @@ for d in xrange(1, 32):
     X = read_trainingset('/home/fan/work/data/dis_forensemble_2012_jan/', d)
     for t in xrange(96 - T - 3):
         callbacks = [
-            CSVLogger('../results/sadHybridHumanPredictor/online_predictor_2012_jan/log_d{}t{}.csv'.format(d, t), separator=',', append=False),
-            ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/online_predictor_2012_jan/online_predictor_d{}t{}.hdf5'.format(d, t), verbose=1, save_best_only=True),
-            EarlyStopping(monitor='val_loss', patience=0, verbose=1, mode='auto')
+            ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/online_predictor_2012_jan/online_predictor_d{}t{}.hdf5'.format(d, t),\
+                            verbose=1, monitor='loss', save_best_only=True),
+            EarlyStopping(monitor='loss', patience=0, verbose=1, mode='auto')
         ]
         tX, xX, Y1, Y2, Y3, Y4 = X[t]
-        online_predictor.fit([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size, epochs=20, shuffle=True,\
-                                validation_split=0.1, verbose=1, callbacks=callbacks)
+        online_predictor.fit([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size, epochs=5, shuffle=True, verbose=1, callbacks=callbacks)
