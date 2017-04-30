@@ -59,7 +59,7 @@ def read_trainingset(folderpath, d):
 t_input = Input(shape=(1,))
 x_input = Input(shape=(T,))
 temb = Flatten()(Embedding(96 - T - 3, embedding_dim_time)(t_input))
-xemb = Embedding(num_locs + 1, embedding_dim_loc, input_length=T)(x_input)
+xemb = Embedding(num_locs, embedding_dim_loc, input_length=T)(x_input)
 rep_time = RepeatVector(T)(temb)
 merge_input = concatenate([rep_time, xemb], axis=-1)
 gru1 = GRU(hidden_dim, return_sequences=True, unroll=True, activation='softsign')(merge_input)

@@ -13,7 +13,7 @@ import numpy as np
 embedding_dim_time = 8
 embedding_dim_loc = 64
 num_models = 31
-hidden_dim = 100
+hidden_dim = 128
 num_locs = 1441
 batch_size = 256
 T = 4
@@ -66,7 +66,7 @@ def build_and_load_model(model_path):
     return predictor
 
 
-models = [build_and_load_model('../results/sadHybridHumanPredictor/ensemble_predictor/ensemble_predictor_{}.hdf5'.format(i)) for i in xrange(1, num_models + 1)]
+models = [build_and_load_model('../results/sadHybridHumanPredictor/ensemble_predictor_2010_aug/ensemble_predictor_{}.hdf5'.format(i)) for i in xrange(1, num_models + 1)]
 print 'Load Models Finished'
 
 t_input = Input(shape=(1,))
@@ -85,14 +85,13 @@ online_predictor.summary()
 online_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
 
 
-for d in xrange(32, 62):
-    X = read_trainingset('/home/fan/work/data/dis_forensemble/', d)
+for d in xrange(1, 32):
+    X = read_trainingset('/home/hpc/work/data/dis_forensemble_2012_aug/', d)
     for t in xrange(96 - T - 3):
         callbacks = [
-            CSVLogger('../results/sadHybridHumanPredictor/online_predictor/log_d{}t{}.csv'.format(d, t), separator=',', append=False),
-            ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/online_predictor/online_predictor_d{}t{}.hdf5'.format(d, t), verbose=1, save_best_only=True),
-            EarlyStopping(monitor='val_loss', patience=0, verbose=1, mode='auto')
+            ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/online_predictor_2012_aug/online_predictor_d{}t{}.hdf5'.format(d, t),\
+                            verbose=1, monitor='loss', save_best_only=True),
+            EarlyStopping(monitor='loss', patience=0, verbose=1, mode='auto')
         ]
         tX, xX, Y1, Y2, Y3, Y4 = X[t]
-        online_predictor.fit([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size, epochs=20, shuffle=True,\
-                                validation_split=0.1, verbose=1, callbacks=callbacks)
+        online_predictor.fit([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size, epochs=5, shuffle=True, verbose=1, callbacks=callbacks)
