@@ -107,3 +107,15 @@ with open('test.csv', 'w') as f:
                 lon += np.random.ranf() * 0.008 - 0.004
                 lat += np.random.ranf() * 0.010 - 0.005
                 f.write('{},{},{},{},{}\n'.format(i, timestr[t], lon, lat, cluster[i]))
+
+for d in xrange(num_models):
+    with open('../results/sadHybridHumanPredictor/model_selection/model_selection_{}.csv'.format(d), 'w') as f:
+        for i in xrange(data.shape[0]):
+            for t in xrange(T):
+                if data[i, t] == 0:
+                    continue
+                else:
+                    lon, lat = meshlonlat.mesh2lonlat(idx2mesh[data[i, t]], 1000, is_center=True)
+                    lon += np.random.ranf() * 0.008 - 0.004
+                    lat += np.random.ranf() * 0.010 - 0.005
+                    f.write('{},{},{},{},{}\n'.format(i, timestr[t], lon, lat, int(pred_weights[i][d] * 30)))
