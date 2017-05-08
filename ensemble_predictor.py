@@ -73,6 +73,10 @@ y2 = shared_softmax(gru22)
 y3 = shared_softmax(gru23)
 y4 = shared_softmax(gru24)
 
+callbacks = [
+    CSVLogger('../results/sadHybridHumanPredictor/ensemble_predictor/log.csv', separator=',', append=False),
+    EarlyStopping(monitor='val_loss', patience=1, verbose=1, mode='auto')
+]
 ensemble_predictor = Model([t_input, x_input], [y1, y2, y3, y4])
 ensemble_predictor.summary()
 ensemble_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
