@@ -95,7 +95,7 @@ with open('/home/fan/work/data/dis_forensemble/loc_dict.csv', 'r') as f:
         idx2mesh[int(lidx_str)] = meshcode
 
 timestr = ['2012-01-01 00:00:00', '2012-01-01 00:15:00', '2012-01-01 00:30:00', '2012-01-01 00:45:00']
-cluster = np.argmax(pred_weights, axis=1) + 1
+cluster = np.argmax(pred_weights, axis=1)
 data = X[0][1]
 with open('test.csv', 'w') as f:
     for i in xrange(data.shape[0]):
@@ -104,6 +104,18 @@ with open('test.csv', 'w') as f:
                 continue
             else:
                 lon, lat = meshlonlat.mesh2lonlat(idx2mesh[data[i, t]], 1000, is_center=True)
-                lon += np.random.ranf() * 0.002 - 0.001
-                lat += np.random.ranf() * 0.0025 - 0.00125
+                lon += np.random.ranf() * 0.008 - 0.004
+                lat += np.random.ranf() * 0.010 - 0.005
                 f.write('{},{},{},{},{}\n'.format(i, timestr[t], lon, lat, cluster[i]))
+
+for d in xrange(num_models):
+    with open('../results/sadHybridHumanPredictor/model_selection/model_selection_{}.csv'.format(d), 'w') as f:
+        for i in xrange(data.shape[0]):
+            for t in xrange(T):
+                if data[i, t] == 0:
+                    continue
+                else:
+                    lon, lat = meshlonlat.mesh2lonlat(idx2mesh[data[i, t]], 1000, is_center=True)
+                    lon += np.random.ranf() * 0.008 - 0.004
+                    lat += np.random.ranf() * 0.010 - 0.005
+                    f.write('{},{},{},{},{}\n'.format(i, timestr[t], lon, lat, int(pred_weights[i][d] * 30)))
