@@ -13,10 +13,10 @@ import numpy as np
 
 embedding_dim_time = 8
 embedding_dim_loc = 64
-num_models = 27
-hidden_dim = 100
+num_models = 31
+hidden_dim = 128
 num_locs = 1441
-batch_size = 256
+batch_size = 8192
 T = 4
 
 def read_trainingset(folderpath, d):
@@ -55,8 +55,7 @@ def read_trainingset(folderpath, d):
         else:
             Y4 = np.concatenate([Y4, data[:, t + 4 + T]])
 
-    choice = np.random.choice(tX.shape[0], 200000, replace=False)
-
+    choice = np.random.choice(tX.shape[0], 1000000, replace=False)
     return tX[choice], xX[choice], Y1[choice], Y2[choice], Y3[choice], Y4[choice]
 
 
@@ -87,10 +86,10 @@ def build_and_load_model(model_path):
     return predictor
 
 
-models = [build_and_load_model('../results/sadHybridHumanPredictor/ensemble_predictor_v2/ensemble_predictor_{}.hdf5'.format(i)) for i in xrange(1, num_models + 1)]
+models = [build_and_load_model('../results/sadHybridHumanPredictor/ensemble_predictor_2011_jan_v2/ensemble_predictor_{}.hdf5'.format(i)) for i in xrange(1, num_models + 1)]
 print 'Load Models Finished'
 
-X = [(read_trainingset('../data/dis_forensemble/', d)) for d in xrange(1, num_models + 1)]
+X = [(read_trainingset('../data/dis_forensemble_2011_jan/', d)) for d in xrange(1, num_models + 1)]
 eval_matrix = np.zeros([num_models, num_models])
 for i in xrange(num_models):
     for j in xrange(num_models):
