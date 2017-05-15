@@ -87,7 +87,6 @@ def get_training_set(user_traj):
 
     return user_traj_matrix
 
-
 # dlat = (lat_max - lat_min) * 0.01
 # dlon = (lon_max - lon_min) * 0.01
 # for i in xrange(100):
