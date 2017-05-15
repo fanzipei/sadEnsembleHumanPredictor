@@ -73,22 +73,26 @@ y2 = shared_softmax(gru22)
 y3 = shared_softmax(gru23)
 y4 = shared_softmax(gru24)
 
+one_predictor = Model([t_input, x_input], [y1, y2, y3, y4])
+one_predictor.summary()
+one_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
 callbacks = [
-    CSVLogger('../results/sadHybridHumanPredictor/ensemble_predictor/log.csv', separator=',', append=False),
-    EarlyStopping(monitor='val_loss', patience=1, verbose=1, mode='auto')
+    CSVLogger('../results/sadHybridHumanPredictor/one_predictor_2011_jan/training_log.csv', separator=',', append=False),
+    ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/one_predictor_2011_jan/one_predictor.hdf5', verbose=1, save_best_only=True),
+    EarlyStopping(monitor='val_loss', patience=0, verbose=1, mode='auto')
 ]
-ensemble_predictor = Model([t_input, x_input], [y1, y2, y3, y4])
-ensemble_predictor.summary()
-ensemble_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
-init_weights = ensemble_predictor.get_weights()
 
-for d in xrange(1, 32):
-    callbacks = [
-        CSVLogger('../results/sadHybridHumanPredictor/ensemble_predictor_2010_aug/log_d{}.csv'.format(d), separator=',', append=False),
-        ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/ensemble_predictor_2010_aug/ensemble_predictor_{}.hdf5'.format(d), verbose=1, save_best_only=True),
-        EarlyStopping(monitor='val_loss', patience=0, verbose=1, mode='auto')
-    ]
-    tX, xX, Y1, Y2, Y3, Y4 = read_trainingset('/home/hpc/work/data/dis_forensemble_2010/', d)
-    ensemble_predictor.set_weights(init_weights)
-    ensemble_predictor.fit([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size, epochs=20, shuffle=True,\
-                            validation_split=0.2, verbose=1, callbacks=callbacks)
+print 'Reading Day {}'.format(1)
+tX, xX, Y1, Y2, Y3, Y4 = read_trainingset('/home/fan/work/data/dis_forensemble_2011_jan/', 1)
+for d in xrange(2, 32):
+    print 'Reading Day {}'.format(d)
+    tX_, xX_, Y1_, Y2_, Y3_, Y4_ = read_trainingset('/home/fan/work/data/dis_forensemble_2011_jan/', d)
+    tX = np.concatenate([tX, tX_])
+    xX = np.concatenate([xX, xX_])
+    Y1 = np.concatenate([Y1, Y1_])
+    Y2 = np.concatenate([Y2, Y2_])
+    Y3 = np.concatenate([Y3, Y3_])
+    Y4 = np.concatenate([Y4, Y4_])
+
+one_predictor.fit([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size, epochs=20, shuffle=True,\
+                        validation_split=0.2, verbose=1, callbacks=callbacks)
