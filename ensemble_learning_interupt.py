@@ -81,6 +81,7 @@ y2 = Reshape((num_locs,))(dot([preds[1], weights], [2, 1]))
 y3 = Reshape((num_locs,))(dot([preds[2], weights], [2, 1]))
 y4 = Reshape((num_locs,))(dot([preds[3], weights], [2, 1]))
 online_predictor = Model([t_input, x_input], [y1, y2, y3, y4])
+online_predictor.load_weights('../results/sadHybridHumanPredictor/online_predictor_2012_aug/online_predictor_d15t68.hdf5')
 online_predictor.summary()
 online_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
 
@@ -88,6 +89,10 @@ online_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSpr
 for d in xrange(1, 32):
     X = read_trainingset('/home/hpc/work/data/dis_forensemble_2012_aug/', d)
     for t in xrange(96 - T - 3):
+        if d < 15:
+            continue
+        if d == 15 and t <= 68:
+            continue
         callbacks = [
             ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/online_predictor_2012_aug/online_predictor_d{}t{}.hdf5'.format(d, t),\
                             verbose=1, monitor='loss', save_best_only=True),

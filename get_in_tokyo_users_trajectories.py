@@ -36,9 +36,9 @@ def output_traj(full_path, out_folder, out_filename, user_set):
 
 
 def filename_generator(folder_path):
-    filename_fmt = '2013{:02d}{:02d}.csv'
+    filename_fmt = '2010{:02d}{:02d}.csv'
     cnt = 0
-    for m in xrange(5, 13):
+    for m in xrange(8, 13):
         for d in xrange(1, 32):
             if cnt >= 0:
                 filename = filename_fmt.format(m, d)
@@ -54,7 +54,7 @@ def main():
     lat_max = 35.8
     lon_min = 139.4
     lon_max = 139.9
-    folder_path = '/media/hpc/HDPC-UT/ZDC/2013/MOD_ATF_ITSMONAVI/2013/'
+    folder_path = '/media/hpc/HDPC-UT/ZDC/2010/ZDC/20100801.csv'
     for filename, full_path in filename_generator(folder_path):
         user_set = filter_users_in_region(full_path, lat_min, lat_max, lon_min, lon_max)
         out_folder = '/home/hpc/work/data/UsersInTokyo/'
