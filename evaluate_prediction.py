@@ -12,7 +12,7 @@ import numpy as np
 embedding_dim_time = 8
 embedding_dim_loc = 64
 num_models = 31
-hidden_dim = 100
+hidden_dim = 128
 num_locs = 1441
 batch_size = 4096
 T = 4
@@ -60,11 +60,8 @@ def build_and_load_model(model_path):
     return predictor
 
 
-# online_predictor = load_model('/home/fan/work/results/sadHybridHumanPredictor/online_predictor/online_predictor_d32t0.hdf5')
-# online_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
-# print 'Load ensemble predictor finished'
-models = [build_and_load_model('../results/sadHybridHumanPredictor/ensemble_predictor/ensemble_predictor_{}.hdf5'.format(i)) for i in xrange(1, num_models + 1)]
-open('../results/sadHybridHumanPredictor/ensemble_losslog.csv', 'w').close()
+models = [build_and_load_model('../results/sadHybridHumanPredictor/ensemble_predictor_2010_aug/ensemble_predictor_{}.hdf5'.format(i)) for i in xrange(1, num_models + 1)]
+open('../results/sadHybridHumanPredictor/ensemble_losslog_2012_aug.csv', 'w').close()
 t_input = Input(shape=(1,))
 x_input = Input(shape=(T,))
 xemb = Embedding(num_locs, embedding_dim_loc, input_length=T)(x_input)
@@ -80,17 +77,17 @@ online_predictor = Model([t_input, x_input], [y1, y2, y3, y4])
 online_predictor.summary()
 online_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
 
-for d in xrange(32, 62):
-    X = read_trainingset('/home/fan/work/data/dis_forensemble/', d)
+for d in xrange(1, 32):
+    X = read_trainingset('/home/fan/work/data/dis_forensemble_2012_aug/', d)
     for t in xrange(96 - 3 * T + 1):
         print 'Day {}, time {}'.format(d, t)
-        online_predictor.load_weights('/home/fan/work/results/sadHybridHumanPredictor/online_predictor/online_predictor_d{}t{}.hdf5'.format(d, t))
+        online_predictor.load_weights('/home/fan/work/results/sadHybridHumanPredictor/online_predictor_2012_aug/online_predictor_d{}t{}.hdf5'.format(d, t))
         tX, xX, Y1, Y2, Y3, Y4 = X[t]
         loss = online_predictor.evaluate([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size)
         print loss
         for i in xrange(num_models):
             loss += models[i].evaluate([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size)
-        with open('../results/sadHybridHumanPredictor/ensemble_losslog.csv', 'a') as f:
+        with open('../results/sadHybridHumanPredictor/ensemble_losslog_2012_aug.csv', 'a') as f:
             for r in loss:
                 f.write('{},'.format(r))
             f.write('\n')

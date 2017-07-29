@@ -73,10 +73,6 @@ y2 = shared_softmax(gru22)
 y3 = shared_softmax(gru23)
 y4 = shared_softmax(gru24)
 
-callbacks = [
-    CSVLogger('../results/sadHybridHumanPredictor/ensemble_predictor/log.csv', separator=',', append=False),
-    EarlyStopping(monitor='val_loss', patience=1, verbose=1, mode='auto')
-]
 ensemble_predictor = Model([t_input, x_input], [y1, y2, y3, y4])
 ensemble_predictor.summary()
 ensemble_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
@@ -84,11 +80,14 @@ init_weights = ensemble_predictor.get_weights()
 
 for d in xrange(1, 32):
     callbacks = [
-        CSVLogger('../results/sadHybridHumanPredictor/ensemble_predictor_2011_jan/log_d{}.csv'.format(d), separator=',', append=False),
-        ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/ensemble_predictor_2011_jan/ensemble_predictor_{}.hdf5'.format(d), verbose=1, save_best_only=True),
-        EarlyStopping(monitor='val_loss', patience=0, verbose=1, mode='auto')
+        CSVLogger('../results/sadHybridHumanPredictor/ensemble_predictor_2011_jan_v2/log_d{}.csv'.format(d), separator=',', append=False),
+        ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/ensemble_predictor_2011_jan_v2/ensemble_predictor_{}.hdf5'.format(d), verbose=1, save_best_only=True, monitor='loss'),
+        # EarlyStopping(monitor='val_loss', patience=0, verbose=1, mode='auto')
+        EarlyStopping(monitor='loss', patience=0, verbose=1, mode='auto')
     ]
     tX, xX, Y1, Y2, Y3, Y4 = read_trainingset('/home/fan/work/data/dis_forensemble_2011_jan/', d)
     ensemble_predictor.set_weights(init_weights)
+    # ensemble_predictor.fit([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size, epochs=20, shuffle=True,\
+                            # validation_split=0.2, verbose=1, callbacks=callbacks)
     ensemble_predictor.fit([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size, epochs=20, shuffle=True,\
-                            validation_split=0.2, verbose=1, callbacks=callbacks)
+                            verbose=1, callbacks=callbacks)

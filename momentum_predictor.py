@@ -49,21 +49,25 @@ y4 = shared_softmax(gru24)
 
 momentum_predictor = Model(x_input, [y1, y2, y3, y4])
 momentum_predictor.summary()
-momentum_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=5e-3))
+momentum_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=2e-3))
+open('../results/sadHybridHumanPredictor/momentum_losslog_2012_jan.csv', 'w').close()
 
 for d in xrange(1, 32):
-    X = read_trainingset('/home/fan/work/data/dis_forensemble_2012_aug/', d)
+    X = read_trainingset('/home/fan/work/data/dis_forensemble_2012_jan/', d)
     for t in xrange(96 - 3 * T + 1):
+        if d == 1 and t == 0:
+            max_iter = 25
+        else:
+            max_iter = 5
         callbacks = [
-            ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/momentum_predictor_2012_aug/momentum_predictor_d{}t{}.hdf5'.format(d, t),\
+            ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/momentum_predictor_2012_jan/momentum_predictor_d{}t{}.hdf5'.format(d, t),\
                             verbose=1, monitor='loss', save_best_only=True),
-            EarlyStopping(monitor='loss', patience=0, verbose=1, mode='auto')
         ]
         tX, xX, Y1, Y2, Y3, Y4 = X[t]
-        momentum_predictor.fit(xX, [Y1, Y2, Y3, Y4], batch_size=batch_size, epochs=100, shuffle=True, verbose=1, callbacks=callbacks)
+        momentum_predictor.fit(xX, [Y1, Y2, Y3, Y4], batch_size=batch_size, epochs=max_iter, shuffle=True, verbose=1, callbacks=callbacks)
         tX, xX, Y1, Y2, Y3, Y4 = X[t + T]
         loss = momentum_predictor.evaluate(xX, [Y1, Y2, Y3, Y4], batch_size=8192)
-        with open('../results/sadHybridHumanPredictor/momentum_losslog_2012_aug.csv', 'a') as f:
+        with open('../results/sadHybridHumanPredictor/momentum_losslog_2012_jan.csv', 'a') as f:
             for r in loss:
                 f.write('{},'.format(r))
             f.write('\n')
