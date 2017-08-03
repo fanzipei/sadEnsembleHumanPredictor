@@ -24,7 +24,7 @@ def read_trainingset(folderpath, d):
     Y1 = None
     filepath = '{}day_{}.csv'.format(folderpath, d)
     data = np.genfromtxt(filepath, dtype=np.int32, delimiter=',')
-    for t in xrange(96 - T - 3):
+    for t in xrange(96 - T):
         if tX is None:
             tX = np.array([t] * data.shape[0])
         else:
@@ -43,7 +43,7 @@ def read_trainingset(folderpath, d):
 
 t_input = Input(shape=(1,))
 x_input = Input(shape=(T,))
-temb = Flatten()(Embedding(96 - T - 3, embedding_dim_time)(t_input))
+temb = Flatten()(Embedding(96 - T, embedding_dim_time)(t_input))
 xemb = Embedding(num_locs, embedding_dim_loc, input_length=T)(x_input)
 rep_time = RepeatVector(T)(temb)
 merge_input = concatenate([rep_time, xemb], axis=-1)
