@@ -34,13 +34,9 @@ def read_trainingset(folderpath, d):
     return X
 
 
-t_input = Input(shape=(1,))
 x_input = Input(shape=(T,))
-temb = Flatten()(Embedding(96 - T - 3, embedding_dim_time)(t_input))
 xemb = Embedding(num_locs, embedding_dim_loc, input_length=T)(x_input)
-rep_time = RepeatVector(T)(temb)
-merge_input = concatenate([rep_time, xemb], axis=-1)
-gru1 = GRU(hidden_dim, return_sequences=True, unroll=True, activation='softsign')(merge_input)
+gru1 = GRU(hidden_dim, return_sequences=True, unroll=True, activation='softsign')(xemb)
 gru21 = GRU(hidden_dim, return_sequences=False, unroll=True, activation='softsign')(gru1)
 gru22 = GRU(hidden_dim, return_sequences=False, unroll=True, activation='softsign')(gru1)
 gru23 = GRU(hidden_dim, return_sequences=False, unroll=True, activation='softsign')(gru1)
@@ -51,23 +47,27 @@ y2 = shared_softmax(gru22)
 y3 = shared_softmax(gru23)
 y4 = shared_softmax(gru24)
 
-momentum_predictor = Model([t_input, x_input], [y1, y2, y3, y4])
+momentum_predictor = Model(x_input, [y1, y2, y3, y4])
 momentum_predictor.summary()
-momentum_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=5e-3))
+momentum_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=2e-3))
+open('../results/sadHybridHumanPredictor/momentum_losslog_2012_jan.csv', 'w').close()
 
 for d in xrange(1, 32):
     X = read_trainingset('/home/fan/work/data/dis_forensemble_2012_jan/', d)
     for t in xrange(96 - 3 * T + 1):
+        if d == 1 and t == 0:
+            max_iter = 25
+        else:
+            max_iter = 5
         callbacks = [
             ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/momentum_predictor_2012_jan/momentum_predictor_d{}t{}.hdf5'.format(d, t),\
                             verbose=1, monitor='loss', save_best_only=True),
-            EarlyStopping(monitor='loss', patience=0, verbose=1, mode='auto')
         ]
         tX, xX, Y1, Y2, Y3, Y4 = X[t]
-        momentum_predictor.fit([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size, epochs=100, shuffle=True, verbose=1, callbacks=callbacks)
+        momentum_predictor.fit(xX, [Y1, Y2, Y3, Y4], batch_size=batch_size, epochs=max_iter, shuffle=True, verbose=1, callbacks=callbacks)
         tX, xX, Y1, Y2, Y3, Y4 = X[t + T]
-        loss = momentum_predictor.evaluate([tX, xX], [Y1, Y2, Y3, Y4], batch_size=8192)
-        with open('../results/sadHybridHumanPredictor/momentum_losslog.csv', 'a') as f:
+        loss = momentum_predictor.evaluate(xX, [Y1, Y2, Y3, Y4], batch_size=8192)
+        with open('../results/sadHybridHumanPredictor/momentum_losslog_2012_jan.csv', 'a') as f:
             for r in loss:
                 f.write('{},'.format(r))
             f.write('\n')

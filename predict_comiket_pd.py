@@ -17,22 +17,6 @@ num_locs = 1441
 batch_size = 4096
 T = 4
 
-def read_trainingset(folderpath, d):
-    filepath = '{}day_{}.csv'.format(folderpath, d)
-    data = np.genfromtxt(filepath, dtype=np.int32, delimiter=',')
-    X = []
-    for t in xrange(T, 96 - 2 * T + 1):
-        tX = np.array([t] * data.shape[0])
-        xX = data[:, t + 1:t + 1 + T]
-        Y1 = data[:, t + 1 + T]
-        Y2 = data[:, t + 2 + T]
-        Y3 = data[:, t + 3 + T]
-        Y4 = data[:, t + 4 + T]
-        X.append((tX, xX, Y1, Y2, Y3, Y4))
-
-    return X
-
-
 def build_and_load_model(model_path):
     print 'Build model {}'.format(model_path)
     t_input = Input(shape=(1,))
@@ -51,7 +35,6 @@ def build_and_load_model(model_path):
     y2 = shared_softmax(gru22)
     y3 = shared_softmax(gru23)
     y4 = shared_softmax(gru24)
-
     predictor = Model([t_input, x_input], [y1, y2, y3, y4])
     predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
     predictor.trainable = False
@@ -60,8 +43,10 @@ def build_and_load_model(model_path):
     return predictor
 
 
+# online_predictor = load_model('/home/fan/work/results/sadHybridHumanPredictor/online_predictor/online_predictor_d32t0.hdf5')
+# online_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
+# print 'Load ensemble predictor finished'
 models = [build_and_load_model('../results/sadHybridHumanPredictor/ensemble_predictor_2010_aug/ensemble_predictor_{}.hdf5'.format(i)) for i in xrange(1, num_models + 1)]
-open('../results/sadHybridHumanPredictor/ensemble_losslog_2012_aug.csv', 'w').close()
 t_input = Input(shape=(1,))
 x_input = Input(shape=(T,))
 xemb = Embedding(num_locs, embedding_dim_loc, input_length=T)(x_input)
@@ -77,18 +62,55 @@ online_predictor = Model([t_input, x_input], [y1, y2, y3, y4])
 online_predictor.summary()
 online_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
 
-for d in xrange(1, 32):
-    X = read_trainingset('/home/fan/work/data/dis_forensemble_2012_aug/', d)
-    for t in xrange(96 - 3 * T + 1):
-        print 'Day {}, time {}'.format(d, t)
-        online_predictor.load_weights('/home/fan/work/results/sadHybridHumanPredictor/online_predictor_2012_aug/online_predictor_d{}t{}.hdf5'.format(d, t))
-        tX, xX, Y1, Y2, Y3, Y4 = X[t]
-        loss = online_predictor.evaluate([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size)
-        print loss
-        for i in xrange(num_models):
-            loss += models[i].evaluate([tX, xX], [Y1, Y2, Y3, Y4], batch_size=batch_size)
-        with open('../results/sadHybridHumanPredictor/ensemble_losslog_2012_aug.csv', 'a') as f:
-            for r in loss:
-                f.write('{},'.format(r))
-            f.write('\n')
+tX = None
+xX = None
+Y1 = None
+Y2 = None
+Y3 = None
+Y4 = None
+data = np.genfromtxt('', dtype=np.int32, delimiter=',')
+for t in xrange(96 - T - 3):
+    if tX is None:
+        tX = np.array([t] * data.shape[0])
+    else:
+        tX = np.concatenate([tX, np.array([t] * data.shape[0])])
+    if xX is None:
+        xX = data[:, t + 1:t + 1 + T]
+    else:
+        xX = np.concatenate([xX, data[:, t + 1:t + 1 + T]])
+    if Y1 is None:
+        Y1 = data[:, t + 1 + T]
+    else:
+        Y1 = np.concatenate([Y1, data[:, t + 1 + T]])
+    if Y2 is None:
+        Y2 = data[:, t + 2 + T]
+    else:
+        Y2 = np.concatenate([Y2, data[:, t + 2 + T]])
+    if Y3 is None:
+        Y3 = data[:, t + 3 + T]
+    else:
+        Y3 = np.concatenate([Y3, data[:, t + 3 + T]])
+    if Y4 is None:
+        Y4 = data[:, t + 4 + T]
+    else:
+        Y4 = np.concatenate([Y4, data[:, t + 4 + T]])
 
+pd1 = np.zeros(89)
+pd2 = np.zeros(89)
+pd3 = np.zeros(89)
+pd4 = np.zeros(89)
+for t in xrange(89):
+    online_predictor.load_weights('/home/hpc/work/results/sadHybridHumanPredictor/online_predictor_2012_aug/online_predictor_d{}t{}.hdf5'.format(11, t))
+    Y = online_predictor.predict([tX, xX])
+    pd1[t] = np.sum(Y[0][:, 632])
+    pd2[t] = np.sum(Y[1][:, 632])
+    pd3[t] = np.sum(Y[2][:, 632])
+    pd4[t] = np.sum(Y[3][:, 632])
+
+gtpd1 = Y1.shape[0] - np.count_nonzero(Y1 - 632, axis=0)
+gtpd2 = Y2.shape[0] - np.count_nonzero(Y2 - 632, axis=0)
+gtpd3 = Y3.shape[0] - np.count_nonzero(Y3 - 632, axis=0)
+gtpd4 = Y4.shape[0] - np.count_nonzero(Y4 - 632, axis=0)
+
+out = np.array([pd1, pd2, pd3, pd4, gtpd1, gtpd2, gtpd3, gtpd4])
+np.savetxt('population_density.csv', out, delimiter=',')

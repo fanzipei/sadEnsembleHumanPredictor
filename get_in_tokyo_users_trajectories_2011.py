@@ -40,9 +40,9 @@ def output_traj(full_path, out_folder, out_filename, user_set):
 
 
 def filename_generator(folder_path):
-    filename_fmt = '2010{:02d}{:02d}.csv'
+    filename_fmt = '2011{:02d}{:02d}.csv'
     cnt = 0
-    for m in xrange(12, 13):
+    for m in xrange(1, 13):
         for d in xrange(1, 32):
             if cnt >= 0:
                 filename = filename_fmt.format(m, d)
