@@ -53,7 +53,7 @@ def build_and_load_model(model_path):
     return predictor
 
 
-models = [build_and_load_model('../results/sadHybridHumanPredictor/ensemble_predictor_2010_aug/ensemble_predictor_{}.hdf5'.format(i)) for i in xrange(1, num_models + 1)]
+models = [build_and_load_model('../results/sadHybridHumanPredictor/ensemble_predictor_2012_jan/ensemble_predictor_{}.hdf5'.format(i)) for i in xrange(1, num_models + 1)]
 print 'Load Models Finished'
 
 t_input = Input(shape=(1,))
@@ -87,7 +87,7 @@ for d in xrange(1, 32):
     X = read_trainingset('/home/hpc/work/data/dis_forensemble_2012_aug/', d)
     for t in xrange(96 - T):
         callbacks = [
-            ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/online_predictor_with_momentum_2012_aug/online_predictor_d{}t{}.hdf5'.format(d, t),\
+            ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/online_predictor_with_momentum_2012_jan2aug/online_predictor_d{}t{}.hdf5'.format(d, t),\
                             verbose=1, monitor='loss', save_best_only=True),
             EarlyStopping(monitor='loss', patience=0, verbose=1, mode='auto')
         ]
