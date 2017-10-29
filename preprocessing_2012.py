@@ -8,26 +8,29 @@ import meshlonlat
 import numpy as np
 
 
-<<<<<<< HEAD
-start_time = time.mktime(time.strptime('2010-12-31 23:50:00', '%Y-%m-%d %H:%M:%S'))
-=======
-start_time = time.mktime(time.strptime('2012-07-31 23:50:00', '%Y-%m-%d %H:%M:%S'))
->>>>>>> d76e3c9eafd7d9e52b625a68127386066b223427
+start_time = time.mktime(time.strptime('2012-09-30 23:50:00', '%Y-%m-%d %H:%M:%S'))
 loc_dict = dict({})
-lat_min = 35.5
-lat_max = 35.8
-lon_min = 139.4
-lon_max = 139.9
+# Tokyo
+# lat_min = 35.5
+# lat_max = 35.8
+# lon_min = 139.4
+# lon_max = 139.9
+# Osaka
+# lat_min = 34.4416666667
+# lat_max = 34.8416666667
+# lon_min = 135.3 + 1e-10
+# lon_max = 135.7 + 1e-10
+# Fukuoka
+lat_min = 33.475
+lat_max = 33.7666666666
+lon_min = 130.25
+lon_max = 130.7
 
 
 def filename_generator(folder_path):
-<<<<<<< HEAD
-    filename = '2011{:02d}{:02d}.csv'
-=======
     filename = '2012{:02d}{:02d}.csv'
->>>>>>> d76e3c9eafd7d9e52b625a68127386066b223427
     day_idx = 1
-    for m in xrange(8, 9):
+    for m in xrange(10, 11):
         for d in xrange(1, 32):
             full_path = os.path.join(folder_path, filename.format(m, d))
             if os.path.isfile(full_path):
@@ -44,8 +47,8 @@ def read_traj(filename, start_time):
                 continue
             lat = float(lat_str)
             lon = float(lon_str)
-            # uid = int(uid_str[3:])
-            uid = int(uid_str)
+            uid = int(uid_str[3:])
+            # uid = int(uid_str)
             if uid not in user_traj:
                 user_traj[uid] = []
             user_traj[uid].append((tstamp, lat, lon))
@@ -103,33 +106,21 @@ def get_training_set(user_traj):
         # lon = lon_min + dlon * (j + 0.5)
         # meshcode = meshlonlat.lonlat2mesh(lon, lat, 1000)
         # if meshcode not in loc_dict:
-            # loc_dict[meshcode] = len(loc_dict)
+            # loc_dict[meshcode] = len(loc_dict) + 1
 
 # print 'Initialize Loc dictionary'
-# with open('/home/fan/work/data/dis_forensemble/loc_dict.csv', 'w') as f:
+# with open('./loc_dict_osaka.csv', 'w') as f:
     # for meshcode in loc_dict:
         # f.write('{},{}\n'.format(meshcode, loc_dict[meshcode] + 1))
 
 print 'Initialize loc dictionary from file'
-with open('./loc_dict.csv', 'r') as f:
+with open('./loc_dict_fukuoka.csv', 'r') as f:
     for meshcode, lidx in csv.reader(f):
         loc_dict[meshcode] = int(lidx)
 
-<<<<<<< HEAD
-for day_idx, filename in filename_generator('/home/hpc/work/data/UsersInTokyo/'):
-    if day_idx < 9:
-        continue
-=======
-for day_idx, filename in filename_generator('/home/fan/work/data/UsersInTokyo/'):
-    # if day_idx < 19:
-        # continue
->>>>>>> d76e3c9eafd7d9e52b625a68127386066b223427
+for day_idx, filename in filename_generator('/home/fan/work/data/UsersInFukuoka_2012/'):
     print 'Read {}'.format(filename)
     user_traj = read_traj(filename, start_time + (day_idx - 1) * 3600 * 24)
     print 'Number of users: {}'.format(len(user_traj))
     training_set = get_training_set(user_traj)
-<<<<<<< HEAD
-    np.savetxt('/home/hpc/work/data/dis_forensemble_2011/day_{}.csv'.format(day_idx), training_set, delimiter=',', fmt='%i')
-=======
-    np.savetxt('/home/fan/work/data/dis_forensemble_2012_aug/day_{}.csv'.format(day_idx), training_set, delimiter=',', fmt='%i')
->>>>>>> d76e3c9eafd7d9e52b625a68127386066b223427
+    np.savetxt('/home/fan/work/data/dis_forensemble_2012_oct_fukuoka/day_{}.csv'.format(day_idx), training_set, delimiter=',', fmt='%i')
