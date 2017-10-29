@@ -8,7 +8,7 @@ def filter_users_in_region(filename, lat_min, lat_max, lon_min, lon_max):
     user_set = dict({})
     with open(filename, 'r') as f:
         # cnt = 0
-        for uid_str, time_str, lat_str, lon_str, _, _, _, _ in csv.reader(f):
+        for uid_str, time_str, lat_str, lon_str, _, _ in csv.reader(f):
             # cnt += 1
             # print cnt
             uid = int(uid_str)
@@ -26,7 +26,7 @@ def filter_users_in_region(filename, lat_min, lat_max, lon_min, lon_max):
 def output_traj(full_path, out_folder, out_filename, user_set):
     with open(full_path, 'r') as fin:
         with open(os.path.join(out_folder, out_filename), 'w') as fout:
-            for uid_str, time_str, lat_str, lon_str, _, _, _, _ in csv.reader(fin):
+            for uid_str, time_str, lat_str, lon_str, _, _ in csv.reader(fin):
                 uid = int(uid_str)
                 if uid in user_set:
                     if user_set[uid] > 5:
@@ -36,9 +36,9 @@ def output_traj(full_path, out_folder, out_filename, user_set):
 
 
 def filename_generator(folder_path):
-    filename_fmt = '2011{:02d}{:02d}.csv'
-    for m in xrange(8, 13):
-        for d in xrange(7, 32):
+    filename_fmt = '2012{:02d}{:02d}.csv'
+    for m in xrange(10, 11):
+        for d in xrange(1, 32):
             filename = filename_fmt.format(m, d)
             full_path = os.path.join(folder_path, filename)
             print 'Reading {}'.format(full_path)
@@ -48,15 +48,15 @@ def filename_generator(folder_path):
 
 def main():
 
-    lat_min = 35.5
-    lat_max = 35.8
-    lon_min = 139.4
-    lon_max = 139.9
-    folder_path = '/home/fan/work/data/ZDC/2011/'
+    lat_min = 34.4416666667
+    lat_max = 34.8416666667
+    lon_min = 135.3 + 1e-10
+    lon_max = 135.7 + 1e-10
+    folder_path = '/media/fan/65D42DD030E60A2D/ZDC/2012/FeaturePhone/'
 
     for filename, full_path in filename_generator(folder_path):
         user_set = filter_users_in_region(full_path, lat_min, lat_max, lon_min, lon_max)
-        out_folder = '/home/fan/work/data/UsersInTokyo/'
+        out_folder = '/home/fan/work/data/UsersInOsaka_2012/'
         output_traj(full_path, out_folder, filename, user_set)
 
 
