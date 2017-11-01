@@ -35,8 +35,8 @@ def read_trainingset(folderpath, d):
 
 x_input = Input(shape=(T,))
 xemb = Embedding(num_locs, embedding_dim_loc, input_length=T)(x_input)
-gru1 = GRU(hidden_dim, return_sequences=True, unroll=True, activation='softsign')(xemb)
-gru2 = GRU(hidden_dim, return_sequences=False, unroll=True, activation='softsign')(gru1)
+gru1 = GRU(hidden_dim, return_sequences=True, unroll=True, activation='softsign', dropout=0.2, recurrent_dropout=0.2)(xemb)
+gru2 = GRU(hidden_dim, return_sequences=False, unroll=True, activation='softsign', dropout=0.2, recurrent_dropout=0.2)(gru1)
 y = Dense(num_locs, activation='softmax')(gru2)
 
 momentum_predictor = Model(x_input, y)
