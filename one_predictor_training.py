@@ -58,18 +58,19 @@ weekday_may_2012 = [3, 4, 5, 6, 12, 13, 19, 20, 26, 27]
 weekday_aug_2012 = [4, 5, 11, 12, 18, 19, 25, 26]
 weekday_oct_2012 = [6, 7, 8, 13, 14, 20, 21, 27, 28]
 
-for d in xrange(1, 32):
+tX_all = np.zeros([0], dtype=np.int32)
+xX_all = np.zeros([0, T], dtype=np.int32)
+Y1_all = np.zeros([0], dtype=np.int32)
+w_all = np.zeros([0, 1], dtype=np.float)
 
-    tX_all = np.zeros([0], dtype=np.int32)
-    xX_all = np.zeros([0, T], dtype=np.int32)
-    Y1_all = np.zeros([0], dtype=np.int32)
-    w_all = np.zeros([0, 1], dtype=np.float)
+for d in xrange(1, 32):
     tX, xX, Y1 = read_trainingset('/home/fan/work/data/dis_forensemble_2011_jan_tokyo/', d)
     tX_all = np.concatenate([tX_all, tX])
     xX_all = np.concatenate([xX_all, xX])
     Y1_all = np.concatenate([Y1_all, Y1])
+    print tX_all.shape[0]
 
-    if d in weekday_jan_2011:
+    if d in weekday_may_2011:
         w_all = np.concatenate([w_all, 1 + np.zeros([tX.shape[0], 1])])
     else:
         w_all = np.concatenate([w_all, -1 + np.zeros([tX.shape[0], 1])])
@@ -80,5 +81,4 @@ callbacks = [
     EarlyStopping(monitor='loss', patience=0, verbose=1, mode='auto')
 ]
 ensemble_predictor.set_weights(init_weights)
-ensemble_predictor.fit([tX_all, xX_all, w_all], Y1_all, batch_size=batch_size, epochs=20, shuffle=True,\
-                        verbose=1, callbacks=callbacks)
+ensemble_predictor.fit([tX_all, xX_all, w_all], Y1_all, batch_size=batch_size, epochs=20, shuffle=True, verbose=1, callbacks=callbacks)
