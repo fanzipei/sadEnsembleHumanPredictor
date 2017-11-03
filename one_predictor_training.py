@@ -76,7 +76,7 @@ for d in xrange(1, 32):
 
 callbacks = [
     CSVLogger('../results/sadHybridHumanPredictor/one_predictor_2011_jan_tokyo/log_d{}.csv'.format(d), separator=',', append=False),
-    ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/one_predictor_2011_jan_tokyo/one_predictor_{}.hdf5'.format(d), verbose=1, save_best_only=True, monitor='loss'),
+    ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/one_predictor_2011_jan_tokyo/one_predictor.hdf5', verbose=1, save_best_only=True, monitor='loss'),
     EarlyStopping(monitor='loss', patience=0, verbose=1, mode='auto')
 ]
 ensemble_predictor.set_weights(init_weights)
