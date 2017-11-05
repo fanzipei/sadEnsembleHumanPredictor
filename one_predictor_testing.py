@@ -27,7 +27,7 @@ def read_trainingset(folderpath, d):
     Y1 = np.zeros([0], dtype=np.int32)
     filepath = '{}day_{}.csv'.format(folderpath, d)
     data = np.genfromtxt(filepath, dtype=np.int32, delimiter=',')
-    for t in xrange(96 - T):
+    for t in xrange(96 - T - 1):
         tX = np.concatenate([tX, np.array([t] * data.shape[0])])
         xX = np.concatenate([xX, data[:, t + 1:t + 1 + T]])
         Y1 = np.concatenate([Y1, data[:, t + 1 + T]])
@@ -52,7 +52,7 @@ def read_trainingset(folderpath, d):
 # ensemble_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
 # init_weights = ensemble_predictor.get_weights()
 
-ensemble_predictor = load_model('../results/sadHybridHumanPredictor/one_predictor_2010_aug_osaka/')
+ensemble_predictor = load_model('../results/sadHybridHumanPredictor/one_predictor_2010_aug_osaka/one_predictor.hdf5')
 
 weekday_jan_2011 = [1, 2, 3, 8, 9, 10, 15, 16, 22, 23, 29, 30]
 weekday_may_2011 = [1, 3, 4, 5, 7, 8, 14, 15, 21, 22, 28, 29]
@@ -67,15 +67,11 @@ open('../results/sadHybridHumanPredictor/one_predictor_2012_aug_osaka.csv', 'w')
 
 for d in xrange(1, 32):
     tX, xX, Y1 = read_trainingset('/home/fan/work/data/dis_forensemble_2012_aug_osaka/', d)
-    w = None
+    w = -1 + np.zeros([tX.shape[0], 1])
 
     if d in weekday_aug_2012:
-        w = np.concatenate([w, 1 + np.zeros([tX.shape[0], 1])])
-    else:
-        w = np.concatenate([w, -1 + np.zeros([tX.shape[0], 1])])
+        w = -w
 
     loss = ensemble_predictor.evaluate([tX, xX, w], Y1, batch_size=4096)
     with open('../results/sadHybridHumanPredictor/one_predictor_2012_aug_osaka.csv', 'a') as f:
-        for r in loss:
-            f.write('{},'.format(r))
-        f.write('\n')
+        f.write('{}\n'.format(loss))
