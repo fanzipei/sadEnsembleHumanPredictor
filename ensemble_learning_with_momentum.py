@@ -14,7 +14,10 @@ embedding_dim_time = 8
 embedding_dim_loc = 64
 num_models = 31
 hidden_dim = 128
-num_locs = 1441
+# tokyo
+# num_locs = 1441
+# osaka
+num_locs = 1537
 batch_size = 256
 T = 4
 
@@ -53,7 +56,7 @@ def build_and_load_model(model_path):
     return predictor
 
 
-models = [build_and_load_model('../results/sadHybridHumanPredictor/ensemble_predictor_2012_jan/ensemble_predictor_{}.hdf5'.format(i)) for i in xrange(1, num_models + 1)]
+models = [build_and_load_model('../results/sadHybridHumanPredictor/ensemble_predictor_2011_jan_osaka/ensemble_predictor_{}.hdf5'.format(i)) for i in xrange(1, num_models + 1)]
 print 'Load Models Finished'
 
 t_input = Input(shape=(1,))
@@ -83,14 +86,21 @@ online_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSpr
 momentum_predictor.trainable = True
 momentum_predictor.compile(loss='sparse_categorical_crossentropy', optimizer=RMSprop(lr=1e-3))
 
+open('../results/sadHybridHumanPredictor/ensemble_predictor_2012_may_osaka_corrected.csv', 'w').close()
+
 for d in xrange(1, 32):
-    X = read_trainingset('/home/hpc/work/data/dis_forensemble_2012_aug/', d)
-    for t in xrange(96 - T):
+    X = read_trainingset('/home/fan/work/data/dis_forensemble_2012_jan_osaka/', d)
+    for t in xrange(96 - T - 1):
         callbacks = [
-            ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/online_predictor_with_momentum_2012_jan2aug/online_predictor_d{}t{}.hdf5'.format(d, t),\
+            ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/online_predictor_with_momentum_2012_jan_osaka/online_predictor_d{}t{}.hdf5'.format(d, t),\
                             verbose=1, monitor='loss', save_best_only=True),
             EarlyStopping(monitor='loss', patience=0, verbose=1, mode='auto')
         ]
         tX, xX, Y1 = X[t]
-        momentum_predictor.fit(xX, Y1, batch_size=batch_size, epochs=25, shuffle=True, verbose=1, callbacks=[EarlyStopping(monitor='loss', patience=0, verbose=1, mode='auto')])
         online_predictor.fit([tX, xX], Y1, batch_size=batch_size, epochs=5, shuffle=True, verbose=1, callbacks=callbacks)
+        momentum_predictor.fit(xX, Y1, batch_size=batch_size, epochs=25, shuffle=True, verbose=1, callbacks=[EarlyStopping(monitor='loss', patience=0, verbose=1, mode='auto')])
+
+        tX, xX, Y1 = X[t + 1]
+        loss = online_predictor.evaluate([tX, xX], Y1, batch_size=4096)
+        with open('../results/sadHybridHumanPredictor/ensemble_predictor_2012_may_osaka_corrected.csv', 'a') as f:
+            f.write('{}\n'.format(loss))
