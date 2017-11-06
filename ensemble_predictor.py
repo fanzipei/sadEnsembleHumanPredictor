@@ -13,7 +13,10 @@ import numpy as np
 embedding_dim_time = 8
 embedding_dim_loc = 64
 hidden_dim = 128
-num_locs = 1441
+# tokyo
+# num_locs = 1441
+# osaka
+num_locs = 1537
 batch_size = 256
 T = 4
 
@@ -58,11 +61,11 @@ init_weights = ensemble_predictor.get_weights()
 
 for d in xrange(1, 32):
     callbacks = [
-        CSVLogger('../results/sadHybridHumanPredictor/ensemble_predictor_2012_jan/log_d{}.csv'.format(d), separator=',', append=False),
-        ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/ensemble_predictor_2012_jan/ensemble_predictor_{}.hdf5'.format(d), verbose=1, save_best_only=True, monitor='loss'),
+        CSVLogger('../results/sadHybridHumanPredictor/ensemble_predictor_2011_jan_osaka/log_d{}.csv'.format(d), separator=',', append=False),
+        ModelCheckpoint(filepath='../results/sadHybridHumanPredictor/ensemble_predictor_2011_jan_osaka/ensemble_predictor_{}.hdf5'.format(d), verbose=1, save_best_only=True, monitor='loss'),
         EarlyStopping(monitor='loss', patience=0, verbose=1, mode='auto')
     ]
-    tX, xX, Y1 = read_trainingset('/home/hpc/work/data/dis_forensemble_2012_jan/', d)
+    tX, xX, Y1 = read_trainingset('/home/fan/work/data/dis_forensemble_2011_jan_osaka/', d)
     ensemble_predictor.set_weights(init_weights)
     ensemble_predictor.fit([tX, xX], Y1, batch_size=batch_size, epochs=20, shuffle=True,\
                             verbose=1, callbacks=callbacks)
